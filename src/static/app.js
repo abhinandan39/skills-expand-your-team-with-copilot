@@ -886,21 +886,32 @@ document.addEventListener("DOMContentLoaded", () => {
         break;
 
       case "copy":
-        // Create a temporary input to copy the URL
-        const tempInput = document.createElement("input");
-        tempInput.value = pageUrl;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        tempInput.setSelectionRange(0, 99999); // For mobile devices
+        // Use modern Clipboard API if available, fallback to execCommand
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(pageUrl)
+            .then(() => {
+              showMessage("Link copied to clipboard!", "success");
+            })
+            .catch(() => {
+              showMessage("Failed to copy link. Please copy manually.", "error");
+            });
+        } else {
+          // Fallback for older browsers
+          const tempInput = document.createElement("input");
+          tempInput.value = pageUrl;
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          tempInput.setSelectionRange(0, 99999);
 
-        try {
-          document.execCommand("copy");
-          showMessage("Link copied to clipboard!", "success");
-        } catch (err) {
-          showMessage("Failed to copy link. Please copy manually.", "error");
+          try {
+            document.execCommand("copy");
+            showMessage("Link copied to clipboard!", "success");
+          } catch (err) {
+            showMessage("Failed to copy link. Please copy manually.", "error");
+          }
+
+          document.body.removeChild(tempInput);
         }
-
-        document.body.removeChild(tempInput);
         break;
 
       default:
